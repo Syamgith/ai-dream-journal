@@ -53,4 +53,4 @@ email-validator==2.1.0
 
 #pip install -r requirements.txt #pip install --upgrade --force-reinstall -r requirements.txt
 
-#uvicorn src.backend.main:app --reload
+#uvicorn main:app --reload

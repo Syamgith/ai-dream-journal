@@ -1,32 +1,25 @@
-# src/backend/ai_interpreters/gemini_interpreter.py
-
 import os
+import openai
 from dotenv import load_dotenv
-import google.generativeai as genai
 from typing import Optional
-from src.backend.services.dream_rag_service import DreamRAGService
 
 # Load environment variables from .env file
 load_dotenv()
 
-class GeminiDreamInterpreter:
+class OpenAIDreamInterpreter:
     def __init__(self, api_key: Optional[str] = None):
         # Directly get the API key from environment variables
-        self.api_key = api_key or os.getenv('GOOGLE_API_KEY')
+        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
         
         # Validate API key
         if not self.api_key:
             raise ValueError(
-                "No Google API Key found. "
-                "Please set GOOGLE_API_KEY in your .env file."
+                "No OpenAI API Key found. "
+                "Please set OPENAI_API_KEY in your .env file."
             )
         
-        # Configure the API
-        genai.configure(api_key=self.api_key)
-        
-        # Initialize the model
-        self.model = genai.GenerativeModel('gemini-pro')
-        self.rag_service = DreamRAGService()
+        # Configure the OpenAI API
+        openai.api_key = self.api_key
 
     def interpret_dream(self, description: str) -> str:
         try:
@@ -45,18 +38,14 @@ class GeminiDreamInterpreter:
             Interpretation:
             """
 
-            # Augment prompt with RAG context
-            # augmented_prompt = self.rag_service.augment_prompt(description)
-            augmented_prompt = prompt
-            # Generate interpretation
-            print("augmented promnt : \n" + augmented_prompt)
-            response = self.model.generate_content(augmented_prompt)
-            # response = augmented_prompt
-            print("hi from interpret dream")
+            # Generate interpretation using OpenAI API
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}]
+            )
             
-            # Return the text response, handling potential errors
-            # return response
-            return response.text.strip() or "Unable to generate interpretation"
+            # Return the text response
+            return response['choices'][0]['message']['content'].strip() or "Unable to generate interpretation"
 
         except Exception as e:
             print(f"Error in dream interpretation: {e}")
@@ -77,8 +66,11 @@ class GeminiDreamInterpreter:
             - Capture the dream's essence
             """
 
-            response = self.model.generate_content(prompt)
-            return response.text.strip() or None
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response['choices'][0]['message']['content'].strip() or None
 
         except Exception as e:
             print(f"Error generating dream title: {e}")
